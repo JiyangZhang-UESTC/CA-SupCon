@@ -1,0 +1,74 @@
+TYPE: "supcon"
+
+DATASET_NAME: "te"
+DATASET_DESC: "train-2000_val-1000_test-1000"
+IMBALANCED: True
+IMB_DESC: "all_equal_ratio_0.2" 
+OUTPUT_DIR: "./output"
+
+EXP_TYPE: "supcon"
+RUN_DESC: "ca_supcon"
+EXP_DESC: "cnn1d-te"
+MODE: "train_supcon" 
+
+SEED: 0
+LAMDA: 1
+
+DATASET:
+  DATASET_CLASS: "TEDatasetShuffle" 
+  SPLITS: ["train", "val", "test"]
+  DATA_ROOT:
+  TRANSFORMS:
+      USE_TRANSFORMS: True
+      TRANSFORM_TYPE: [["Jitter", "Scaling", "MakeNoise", "Translation"]]
+      PARAM_DICT: [{ "Jitter": {"sigma": 0.05,"p": 0.5},
+                     "Scaling": {"sigma": 0.05,"p": 0.5}, 
+                     "MakeNoise": {"sigma": 0.1,"p": 0.5},
+                     "Translation": {"p": 0.5}}]
+                    
+      K: 2
+
+DATALOADER:
+  BATCH_SIZE: 72
+  TRAIN_LOADER_SHUFFLE: False  
+  NUM_WORKERS: 0 
+  DROP_LAST: False
+  SAMPLER:
+    USE_EPOCH_STEPS: False
+    SAMPLER_CLASS: "ClassAwareSampler"  
+    NUM_SAMPLER_CLS: 4  
+    DO_BATCH_SHUFFLE: False
+
+NETWORKS:
+  FEAT_MODEL:
+    MODEL_CREATE_FUNC: "create_cnn1d_te" 
+    FIX: False
+    OPTIM_PARAMS: {lr: 0.0003, beta1: 0.9, beta2: 0.99, weight_decay: 0.0003}
+    PARAMS: {seq_len: 200, num_blocks: 2, planes: [16, 16, 16], kernel_size: 10, pool_size: 2, linear_plane: 100} #{input_channels: 52, kernel_size: 25, stride: 3, final_out_channels: 64}
+
+  CLASSIFIER:
+    MODEL_CREATE_FUNC: "create_dot_product_classifier"
+    FIX: False
+    OPTIM_PARAMS: {lr: 0.0003, beta1: 0.9, beta2: 0.99, weight_decay: 0.0003}
+    PARAMS: {linear_plane: 100, num_classes: 18}
+
+MODEL_DIR: 
+
+CRITERIONS:
+  CE_LOSS:
+    LOSS_CREATE_FUNC: "create_ce_loss"
+    PARAM_DICT: 
+
+  CL_LOSS:
+    LOSS_CREATE_FUNC: "create_supcon_loss"
+    PARAM_DICT: {temperature: 0.2, contrast_mode: "all", base_temperature: 0.2}
+    
+TRAINING_OPT:
+  CUDA_VISIBLE_DEVICES: "0"
+  DEVICE: "cuda:0"
+  SCHEDULER:
+    USE_SCHEDULER: False
+    COSLR_ENDLR:
+    STEPLR_PARAMS:
+  NUM_EPOCHS: 50
+  NUM_CLASSES: 18
