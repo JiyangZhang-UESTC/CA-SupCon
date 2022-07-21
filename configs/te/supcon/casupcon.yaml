@@ -44,7 +44,7 @@ NETWORKS:
     MODEL_CREATE_FUNC: "create_cnn1d_te" 
     FIX: False
     OPTIM_PARAMS: {lr: 0.0003, beta1: 0.9, beta2: 0.99, weight_decay: 0.0003}
-    PARAMS: {seq_len: 200, num_blocks: 2, planes: [16, 16, 16], kernel_size: 10, pool_size: 2, linear_plane: 100} #{input_channels: 52, kernel_size: 25, stride: 3, final_out_channels: 64}
+    PARAMS: {seq_len: 200, num_blocks: 2, planes: [16, 16, 16], kernel_size: 10, pool_size: 2, linear_plane: 100}
 
   CLASSIFIER:
     MODEL_CREATE_FUNC: "create_dot_product_classifier"
